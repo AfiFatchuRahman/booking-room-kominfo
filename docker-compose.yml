@@ -1,0 +1,40 @@
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: booking_room_db
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: 123123
+      POSTGRES_DB: booking_room
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./schema.sql:/docker-entrypoint-initdb.d/01-schema.sql:ro
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d meeting_booking"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  api:
+    build: .
+    container_name: booking_room_api
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      APP_PORT: "2254"
+      DB_HOST: db
+      DB_PORT: "5432"
+      DB_USER: postgres
+      DB_PASSWORD: 123123
+      DB_NAME: booking_room_db
+      DB_SSLMODE: disable
+      JWT_SECRET: my-very-secret-key-for-kominfo
+      GIN_MODE: release
+    ports:
+      - "2254:2254"
+
+volumes:
+  pgdata:
