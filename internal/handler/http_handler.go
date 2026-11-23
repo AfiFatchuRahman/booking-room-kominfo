@@ -146,6 +146,7 @@ func (h *HTTPHandler) CancelBooking(c *gin.Context) {
 
 	c.JSON(http.StatusOK, res)
 }
+
 func (h *HTTPHandler) writeError(c *gin.Context, err error) {
 	var appErr *domain.AppError
 	if errors.As(err, &appErr) {

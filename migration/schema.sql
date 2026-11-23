@@ -40,7 +40,15 @@ CREATE INDEX IF NOT EXISTS idx_bookings_user_id
 -- Password untuk semua akun seed di bawah adalah: password123
 INSERT INTO users (name, email, password_hash, role)
 VALUES
-    ('Administrator', 'admin@test.com', '$2a$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'ADMIN'),
-    ('User Satu', 'user1@test.com', '$2a$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'USER'),
-    ('User Dua', 'user2@test.com', '$2a$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'USER')
+    ('Administrator', 'admin@test.com', '$2a$10$rLu66jMTfaRu6Nrzg63/6.IksrDKst1H6xQ.R4aOJQXnlkn2oYUuG', 'ADMIN'),
+    ('User Satu', 'user1@test.com', '$2a$10$rLu66jMTfaRu6Nrzg63/6.IksrDKst1H6xQ.R4aOJQXnlkn2oYUuG', 'USER'),
+    ('User Dua', 'user2@test.com', '$2a$10$rLu66jMTfaRu6Nrzg63/6.IksrDKst1H6xQ.R4aOJQXnlkn2oYUuG', 'USER'),
+    ('User Tiga', 'user3@test.com', '$2a$10$rLu66jMTfaRu6Nrzg63/6.IksrDKst1H6xQ.R4aOJQXnlkn2oYUuG', 'USER'),
+    ('User Empat', 'user4@test.com', '$2a$10$rLu66jMTfaRu6Nrzg63/6.IksrDKst1H6xQ.R4aOJQXnlkn2oYUuG', 'USER'),
+    ('User Lima', 'user5@test.com', '$2a$10$rLu66jMTfaRu6Nrzg63/6.IksrDKst1H6xQ.R4aOJQXnlkn2oYUuG', 'USER'),
+    ('User Enam', 'user6@test.com', '$2a$10$rLu66jMTfaRu6Nrzg63/6.IksrDKst1H6xQ.R4aOJQXnlkn2oYUuG', 'USER'),
+    ('User Tujuh', 'user7@test.com', '$2a$10$rLu66jMTfaRu6Nrzg63/6.IksrDKst1H6xQ.R4aOJQXnlkn2oYUuG', 'USER'),
+    ('User Delapan', 'user8@test.com', '$2a$10$rLu66jMTfaRu6Nrzg63/6.IksrDKst1H6xQ.R4aOJQXnlkn2oYUuG', 'USER'),
+    ('User Sembilan', 'user9@test.com', '$2a$10$rLu66jMTfaRu6Nrzg63/6.IksrDKst1H6xQ.R4aOJQXnlkn2oYUuG', 'USER'),
+    ('User sepuluh', 'user10@test.com', '$2a$10$rLu66jMTfaRu6Nrzg63/6.IksrDKst1H6xQ.R4aOJQXnlkn2oYUuG', 'USER')
 ON CONFLICT (email) DO NOTHING;
