@@ -55,3 +55,7 @@ func (u *Usecase) CreateBooking(ctx context.Context, userID int64, req domain.Cr
 
 	return u.repo.CreateBookingWithLock(ctx, req.RoomID, userID, title, start.UTC(), end.UTC())
 }
+
+func (u *Usecase) CancelBooking(ctx context.Context, bookingID, requesterID int64, requesterRole string) (*domain.CancelBookingResponse, error) {
+	return u.repo.CancelBooking(ctx, bookingID, requesterID, requesterRole)
+}

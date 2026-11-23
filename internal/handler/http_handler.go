@@ -3,6 +3,7 @@ package handler
 import (
 	"errors"
 	"net/http"
+	"strconv"
 
 	"github.com/AfiFatchuRahman/booking-room-kominfo/internal/domain"
 	"github.com/AfiFatchuRahman/booking-room-kominfo/internal/middleware"
@@ -37,6 +38,7 @@ func (h *HTTPHandler) RegisterRoutes(r *gin.Engine, jwtSecret string) {
 			protected.POST("/rooms", middleware.RequireRole("ADMIN"), h.CreateRoom)
 			protected.GET("/rooms/available", h.GetAvailableRooms)
 			protected.POST("/bookings", h.CreateBooking)
+			protected.PATCH("/bookings/:id/cancel", h.CancelBooking)
 
 		}
 	}
@@ -122,6 +124,28 @@ func (h *HTTPHandler) CreateBooking(c *gin.Context) {
 	c.JSON(http.StatusCreated, booking)
 }
 
+func (h *HTTPHandler) CancelBooking(c *gin.Context) {
+	idParam := c.Param("id")
+	bookingID, err := strconv.ParseInt(idParam, 10, 64)
+	if err != nil || bookingID <= 0 {
+		c.JSON(http.StatusBadRequest, domain.ErrorResponse{
+			ErrorCode: "INVALID_ID",
+			Message:   "ID booking tidak valid",
+		})
+		return
+	}
+
+	userID := c.GetInt64("user_id")
+	role := c.GetString("role")
+
+	res, err := h.uc.CancelBooking(c.Request.Context(), bookingID, userID, role)
+	if err != nil {
+		h.writeError(c, err)
+		return
+	}
+
+	c.JSON(http.StatusOK, res)
+}
 func (h *HTTPHandler) writeError(c *gin.Context, err error) {
 	var appErr *domain.AppError
 	if errors.As(err, &appErr) {

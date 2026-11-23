@@ -130,3 +130,32 @@ func (r *Repository) CreateBookingWithLock(ctx context.Context, roomID, userID i
 
 	return &booking, nil
 }
+
+func (r *Repository) CancelBooking(ctx context.Context, bookingID, requesterID int64, requesterRole string) (*domain.CancelBookingResponse, error) {
+	var ownerID int64
+	err := r.db.QueryRowContext(ctx, `SELECT user_id FROM bookings WHERE id = $1`, bookingID).Scan(&ownerID)
+	if errors.Is(err, sql.ErrNoRows) {
+		return nil, domain.ErrBookingMissing
+	}
+	if err != nil {
+		return nil, err
+	}
+
+	if requesterRole != "ADMIN" && ownerID != requesterID {
+		return nil, domain.ErrForbidden
+	}
+
+	var res domain.CancelBookingResponse
+	updateQuery := `
+		UPDATE bookings
+		SET status = 'CANCELLED', updated_at = NOW()
+		WHERE id = $1
+		RETURNING id, status
+	`
+	err = r.db.QueryRowContext(ctx, updateQuery, bookingID).Scan(&res.ID, &res.Status)
+	if err != nil {
+		return nil, err
+	}
+
+	return &res, nil
+}

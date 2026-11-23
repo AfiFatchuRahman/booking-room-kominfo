@@ -58,6 +58,11 @@ type Booking struct {
 	Status    string    `json:"status"`
 }
 
+type CancelBookingResponse struct {
+	ID     int64  `json:"id"`
+	Status string `json:"status"`
+}
+
 type ErrorResponse struct {
 	ErrorCode string `json:"error_code"`
 	Message   string `json:"message"`
