@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/AfiFatchuRahman/booking-room-kominfo/internal/domain"
+	"github.com/AfiFatchuRahman/booking-room-kominfo/internal/middleware"
 	"github.com/AfiFatchuRahman/booking-room-kominfo/internal/usecase"
 
 	"github.com/gin-gonic/gin"
@@ -30,6 +31,12 @@ func (h *HTTPHandler) RegisterRoutes(r *gin.Engine, jwtSecret string) {
 	{
 		v1.POST("/auth/login", h.Login)
 
+		protected := v1.Group("")
+		protected.Use(middleware.AuthMiddleware(jwtSecret))
+		{
+			protected.POST("/rooms", middleware.RequireRole("ADMIN"), h.CreateRoom)
+			protected.GET("/rooms/available", h.GetAvailableRooms)
+		}
 	}
 }
 
@@ -50,6 +57,47 @@ func (h *HTTPHandler) Login(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, res)
+}
+
+func (h *HTTPHandler) CreateRoom(c *gin.Context) {
+	var req domain.CreateRoomRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, domain.ErrorResponse{
+			ErrorCode: "INVALID_REQUEST",
+			Message:   "Payload nama ruangan dan kapasitas tidak valid",
+		})
+		return
+	}
+
+	room, err := h.uc.CreateRoom(c.Request.Context(), req)
+	if err != nil {
+		h.writeError(c, err)
+		return
+	}
+
+	c.JSON(http.StatusCreated, room)
+}
+
+func (h *HTTPHandler) GetAvailableRooms(c *gin.Context) {
+	start := c.Query("start")
+	end := c.Query("end")
+	if start == "" || end == "" {
+		c.JSON(http.StatusBadRequest, domain.ErrorResponse{
+			ErrorCode: "INVALID_TIME",
+			Message:   "Parameter query start dan end wajib diisi",
+		})
+		return
+	}
+
+	rooms, err := h.uc.GetAvailableRooms(c.Request.Context(), start, end)
+	if err != nil {
+		h.writeError(c, err)
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"data": rooms,
+	})
 }
 
 func (h *HTTPHandler) writeError(c *gin.Context, err error) {

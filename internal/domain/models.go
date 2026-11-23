@@ -23,6 +23,24 @@ type LoginResponse struct {
 	Token string `json:"token"`
 }
 
+type Room struct {
+	ID       int64  `json:"id"`
+	Name     string `json:"name"`
+	Capacity int    `json:"capacity"`
+	IsActive bool   `json:"is_active"`
+}
+
+type CreateRoomRequest struct {
+	Name     string `json:"name" binding:"required"`
+	Capacity int    `json:"capacity" binding:"required,gt=0"`
+}
+
+type AvailableRoom struct {
+	ID       int64  `json:"id"`
+	Name     string `json:"name"`
+	Capacity int    `json:"capacity"`
+}
+
 type ErrorResponse struct {
 	ErrorCode string `json:"error_code"`
 	Message   string `json:"message"`
