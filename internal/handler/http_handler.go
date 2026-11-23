@@ -36,6 +36,8 @@ func (h *HTTPHandler) RegisterRoutes(r *gin.Engine, jwtSecret string) {
 		{
 			protected.POST("/rooms", middleware.RequireRole("ADMIN"), h.CreateRoom)
 			protected.GET("/rooms/available", h.GetAvailableRooms)
+			protected.POST("/bookings", h.CreateBooking)
+
 		}
 	}
 }
@@ -98,6 +100,26 @@ func (h *HTTPHandler) GetAvailableRooms(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{
 		"data": rooms,
 	})
+}
+
+func (h *HTTPHandler) CreateBooking(c *gin.Context) {
+	var req domain.CreateBookingRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, domain.ErrorResponse{
+			ErrorCode: "INVALID_REQUEST",
+			Message:   "Payload pemesanan ruangan tidak valid",
+		})
+		return
+	}
+
+	userID := c.GetInt64("user_id")
+	booking, err := h.uc.CreateBooking(c.Request.Context(), userID, req)
+	if err != nil {
+		h.writeError(c, err)
+		return
+	}
+
+	c.JSON(http.StatusCreated, booking)
 }
 
 func (h *HTTPHandler) writeError(c *gin.Context, err error) {

@@ -41,6 +41,23 @@ type AvailableRoom struct {
 	Capacity int    `json:"capacity"`
 }
 
+type CreateBookingRequest struct {
+	RoomID    int64  `json:"room_id" binding:"required"`
+	Title     string `json:"title" binding:"required"`
+	StartTime string `json:"start_time" binding:"required"`
+	EndTime   string `json:"end_time" binding:"required"`
+}
+
+type Booking struct {
+	ID        int64     `json:"id"`
+	RoomID    int64     `json:"room_id"`
+	UserID    int64     `json:"user_id"`
+	Title     string    `json:"title"`
+	StartTime time.Time `json:"start_time"`
+	EndTime   time.Time `json:"end_time"`
+	Status    string    `json:"status"`
+}
+
 type ErrorResponse struct {
 	ErrorCode string `json:"error_code"`
 	Message   string `json:"message"`

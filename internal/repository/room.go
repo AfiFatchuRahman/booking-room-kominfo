@@ -2,6 +2,8 @@ package repository
 
 import (
 	"context"
+	"database/sql"
+	"errors"
 	"time"
 
 	"github.com/AfiFatchuRahman/booking-room-kominfo/internal/domain"
@@ -56,4 +58,75 @@ func (r *Repository) FindAvailableRooms(ctx context.Context, start, end time.Tim
 		return nil, err
 	}
 	return rooms, nil
+}
+
+func (r *Repository) CreateBookingWithLock(ctx context.Context, roomID, userID int64, title string, start, end time.Time) (*domain.Booking, error) {
+	tx, err := r.db.BeginTx(ctx, &sql.TxOptions{Isolation: sql.LevelReadCommitted})
+	if err != nil {
+		return nil, err
+	}
+	defer func() {
+		_ = tx.Rollback()
+	}()
+
+	// Kunci baris room terkait untuk serialisasi request concurrent pada room yang sama
+	var isActive bool
+	err = tx.QueryRowContext(ctx, `SELECT is_active FROM rooms WHERE id = $1 FOR UPDATE`, roomID).Scan(&isActive)
+	if errors.Is(err, sql.ErrNoRows) {
+		return nil, domain.ErrRoomNotFound
+	}
+	if err != nil {
+		return nil, err
+	}
+
+	if !isActive {
+		return nil, domain.ErrRoomInactive
+	}
+
+	// Cek irisan jadwal CONFIRMED
+	var conflictCount int
+	conflictQuery := `
+		SELECT COUNT(1)
+		FROM bookings
+		WHERE room_id = $1
+		  AND status = 'CONFIRMED'
+		  AND start_time < $3
+		  AND end_time > $2
+	`
+	err = tx.QueryRowContext(ctx, conflictQuery, roomID, start.UTC(), end.UTC()).Scan(&conflictCount)
+	if err != nil {
+		return nil, err
+	}
+
+	if conflictCount > 0 {
+		return nil, domain.ErrRoomConflict
+	}
+
+	insertQuery := `
+		INSERT INTO bookings (room_id, user_id, title, start_time, end_time, status)
+		VALUES ($1, $2, $3, $4, $5, 'CONFIRMED')
+		RETURNING id, room_id, user_id, title, start_time, end_time, status
+	`
+	var booking domain.Booking
+	err = tx.QueryRowContext(ctx, insertQuery, roomID, userID, title, start.UTC(), end.UTC()).Scan(
+		&booking.ID,
+		&booking.RoomID,
+		&booking.UserID,
+		&booking.Title,
+		&booking.StartTime,
+		&booking.EndTime,
+		&booking.Status,
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	booking.StartTime = booking.StartTime.UTC()
+	booking.EndTime = booking.EndTime.UTC()
+
+	if err := tx.Commit(); err != nil {
+		return nil, err
+	}
+
+	return &booking, nil
 }
