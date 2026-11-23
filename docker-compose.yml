@@ -29,7 +29,7 @@ services:
       DB_PORT: "5432"
       DB_USER: postgres
       DB_PASSWORD: 123123
-      DB_NAME: booking_room_db
+      DB_NAME: booking_room
       DB_SSLMODE: disable
       JWT_SECRET: my-very-secret-key-for-kominfo
       GIN_MODE: release
